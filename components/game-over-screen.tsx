@@ -35,13 +35,13 @@ export default function GameOverScreen({
   onLogin,
 }: GameOverScreenProps) {
   const { fetchLeaderboard, addScore, leaderboard } = useLeaderboard();
+
   const { user, isLoading } = useAuth();
 
   // Chỉ cần 2 state này để quản lý toàn bộ logic
   const [hasSubmitted, setHasSubmitted] = useState(false);
   const [saveMessage, setSaveMessage] = useState("");
 
-  // Một useEffect duy nhất để xử lý tất cả logic một cách rõ ràng
   useEffect(() => {
     // Chờ cho đến khi xác định xong trạng thái đăng nhập
     if (isLoading) {
@@ -52,6 +52,8 @@ export default function GameOverScreen({
     if (!user && score > 0) {
       addGuestScore(score);
     }
+
+    // Một useEffect duy nhất để xử lý tất cả logic một cách rõ ràn
 
     // Logic tự động lưu điểm cho người chơi ĐÃ ĐĂNG NHẬP
     const savePlayerScore = async () => {

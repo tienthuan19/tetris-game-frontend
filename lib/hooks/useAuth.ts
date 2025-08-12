@@ -1,96 +1,94 @@
-import { useState, useEffect } from "react"
+import { useState, useEffect } from "react";
 
 // KIEU DU LIEU NGUOI DUNG
 interface User {
-  name: string // ten nguoi dung
+  name: string; // ten nguoi dung
 }
 
-const USER_STORAGE_KEY = "tetris_user" // key luu trong localStorage
+// Define an interface for the decoded JWT payload
+interface DecodedToken {
+  id: string;
+  username: string;
+  iat: number;
+  exp: number;
+}
+
+/**
+ * A simple and safe function to decode a JWT token from the client-side.
+ * It extracts the payload which contains user information.
+ * @param {string} token The JWT token from localStorage.
+ * @returns {DecodedToken|null} The decoded user object or null if decoding fails.
+ */
+const decodeToken = (token: string): DecodedToken | null => {
+  try {
+    // A JWT is split into three parts by dots. The middle part is the payload.
+    const base64Url = token.split(".")[1];
+    // The payload is Base64Url encoded. We need to convert it to standard Base64.
+    const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
+    // Decode the Base64 string, then parse the resulting JSON string.
+    const jsonPayload = decodeURIComponent(
+      atob(base64)
+        .split("")
+        .map(function (c) {
+          return "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2);
+        })
+        .join("")
+    );
+
+    return JSON.parse(jsonPayload);
+  } catch (error) {
+    console.error("Failed to decode token:", error);
+    return null;
+  }
+};
+
+const AUTH_TOKEN_KEY = "authToken";
 
 // HOOK XU LY DANG NHAP VA QUAN LY NGUOI DUNG
 export const useAuth = () => {
-  const [user, setUser] = useState<User | null>(null) // thong tin nguoi dung hien tai
-  const [isLoading, setIsLoading] = useState(true) // trang thai dang tai
+  const [user, setUser] = useState<User | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   // TAI THONG TIN NGUOI DUNG TU LOCALSTORAGE KHI KHOI TAO
   useEffect(() => {
     const loadUser = () => {
       try {
-        const savedUser = localStorage.getItem(USER_STORAGE_KEY)
-        if (savedUser) {
-          const parsedUser = JSON.parse(savedUser)
-          setUser(parsedUser)
+        const token = localStorage.getItem(AUTH_TOKEN_KEY);
+        if (token) {
+          const decodedUser = decodeToken(token);
+          // Kiem tra token co hop le va con han su dung khong
+          if (decodedUser && decodedUser.exp * 1000 > Date.now()) {
+            setUser({ name: decodedUser.username });
+          } else {
+            // Token khong hop le hoac da het han, xoa no di
+            localStorage.removeItem(AUTH_TOKEN_KEY);
+          }
         }
       } catch (error) {
-        console.error("Loi tai thong tin nguoi dung:", error)
-        // xoa du lieu loi
-        localStorage.removeItem(USER_STORAGE_KEY)
+        console.error("Loi tai thong tin nguoi dung:", error);
+        localStorage.removeItem(AUTH_TOKEN_KEY);
       } finally {
-        setIsLoading(false)
+        setIsLoading(false);
       }
-    }
+    };
 
-    loadUser()
-  }, [])
-
-  // HAM DANG KY TAI KHOAN MOI
-  const register = (name: string, password: string) => {
-    // kiem tra du lieu dau vao
-    if (!name.trim() || name.trim().length < 3) {
-      throw new Error("Ten nguoi dung phai co it nhat 3 ky tu")
-    }
-    
-    if (!password || password.length < 6) {
-      throw new Error("Mat khau phai co it nhat 6 ky tu")
-    }
-
-    const userData: User = { 
-      name: name.trim()
-    }
-    
-    setUser(userData)
-    
-    // luu vao localStorage
-    try {
-      localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(userData))
-    } catch (error) {
-      console.error("Loi luu thong tin nguoi dung:", error)
-      throw new Error("Khong the luu thong tin dang ky")
-    }
-  }
-
-  // HAM DANG NHAP
-  const login = (name: string, password?: string) => {
-    const userData: User = { 
-      name: name.trim() // loai bo khoang trang dau cuoi
-    }
-    
-    setUser(userData)
-    
-    // luu vao localStorage
-    try {
-      localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(userData))
-    } catch (error) {
-      console.error("Loi luu thong tin nguoi dung:", error)
-    }
-  }
+    loadUser();
+  }, []);
 
   // HAM DANG XUAT
   const logout = () => {
-    setUser(null)
-    // xoa khoi localStorage
-    localStorage.removeItem(USER_STORAGE_KEY)
-  }
+    setUser(null);
+    localStorage.removeItem(AUTH_TOKEN_KEY);
+    // Chuyen ve trang chu de giao dien duoc cap nhat
+    window.location.href = "/";
+  };
 
-  // KIEM TRA NGUOI DUNG DA DANG NHAP CHUA
-  const isAuthenticated = !!user
+  const isAuthenticated = !!user;
 
   return {
-    user, // thong tin nguoi dung hien tai
-    login, // ham dang nhap
-    register, // ham dang ky
-    logout, // ham dang xuat
-    isAuthenticated, // da dang nhap chua
-    isLoading // trang thai dang tai
-  }
-}
+    user,
+    logout,
+    isAuthenticated,
+    isLoading,
+  };
+};

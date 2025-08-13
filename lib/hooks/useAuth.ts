@@ -13,12 +13,12 @@ interface DecodedToken {
   exp: number;
 }
 
-/**
- * A simple and safe function to decode a JWT token from the client-side.
- * It extracts the payload which contains user information.
- * @param {string} token The JWT token from localStorage.
- * @returns {DecodedToken|null} The decoded user object or null if decoding fails.
- */
+// /**
+//  * A simple and safe function to decode a JWT token from the client-side.
+//  * It extracts the payload which contains user information.
+//  * @param {string} token The JWT token from localStorage.
+//  * @returns {DecodedToken|null} The decoded user object or null if decoding fails.
+//  */
 const decodeToken = (token: string): DecodedToken | null => {
   try {
     // A JWT is split into three parts by dots. The middle part is the payload.

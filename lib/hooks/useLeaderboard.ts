@@ -11,7 +11,7 @@ export interface LeaderboardEntry {
 }
 
 // URL cơ sở của backend API của bạn
-const API_BASE_URL = "http://localhost:3001/api/v1";
+const API_BASE_URL = "https://tetris-game-backend-production.up.railway.app/api/v1";
 
 export const useLeaderboard = () => {
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);

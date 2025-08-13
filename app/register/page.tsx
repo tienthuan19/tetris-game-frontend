@@ -55,7 +55,7 @@ export default function RegisterPage() {
     try {
       // *** START OF BACKEND INTEGRATION ***
       // 1. Define your backend API endpoint for registration
-      const apiEndpoint = "http://localhost:3001/api/v1/accounts/register";
+      const apiEndpoint = "https://tetris-game-backend-production.up.railway.app/api/v1/accounts/register";
 
       // 2. Send the registration data to your backend
       const response = await fetch(apiEndpoint, {
